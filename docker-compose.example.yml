@@ -1,0 +1,94 @@
+# docker-compose example for ghcr.io/johanruizb/moodle-alpine
+#
+# Two variants: PostgreSQL (default profile) and MariaDB (alternate profile).
+# Copy this file as docker-compose.yml, adjust passwords and MOODLE_HOST,
+# then:    docker compose up -d
+#
+# To switch backend: comment one `moodle:` block and the matching DB service.
+
+services:
+  # ---------- PostgreSQL backend (recommended) ----------
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: moodle
+      POSTGRES_USER: moodle
+      POSTGRES_PASSWORD: change-me-postgres
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U moodle -d moodle"]
+      interval: 10s
+      retries: 10
+
+  moodle:
+    image: ghcr.io/johanruizb/moodle-alpine:latest   # or :5.0, :4.5, :lts
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # --- Database ---
+      MOODLE_DATABASE_TYPE: pgsql
+      MOODLE_DATABASE_HOST: postgres
+      MOODLE_DATABASE_PORT_NUMBER: "5432"
+      MOODLE_DATABASE_NAME: moodle
+      MOODLE_DATABASE_USER: moodle
+      MOODLE_DATABASE_PASSWORD: change-me-postgres
+
+      # --- Initial admin account (only used on first boot) ---
+      MOODLE_USERNAME: admin
+      MOODLE_PASSWORD: change-me-admin
+      MOODLE_EMAIL: admin@example.com
+
+      # --- Site identity ---
+      MOODLE_SITE_NAME: My Moodle
+      MOODLE_HOST: moodle.example.com   # set to your public hostname
+      MOODLE_LANG: es
+
+      # --- Reverse proxy (uncomment if behind nginx/traefik with TLS) ---
+      # MOODLE_REVERSEPROXY: "yes"
+      # MOODLE_SSLPROXY: "yes"
+
+      # --- SMTP (optional) ---
+      # MOODLE_SMTP_HOST: smtp.example.com
+      # MOODLE_SMTP_PORT_NUMBER: "587"
+      # MOODLE_SMTP_USER: notifications@example.com
+      # MOODLE_SMTP_PASSWORD: change-me-smtp
+      # MOODLE_SMTP_PROTOCOL: tls
+    ports:
+      - "8080:8080"
+    volumes:
+      - moodle-data:/bitnami
+
+  # ---------- MariaDB alternative ----------
+  # Uncomment the two blocks below and remove the postgres ones above
+  # to use MariaDB instead.
+  #
+  # mariadb:
+  #   image: mariadb:11
+  #   restart: unless-stopped
+  #   environment:
+  #     MARIADB_ROOT_PASSWORD: change-me-root
+  #     MARIADB_DATABASE: moodle
+  #     MARIADB_USER: moodle
+  #     MARIADB_PASSWORD: change-me-mariadb
+  #   command:
+  #     - --character-set-server=utf8mb4
+  #     - --collation-server=utf8mb4_unicode_ci
+  #   volumes:
+  #     - mariadb-data:/var/lib/mysql
+  #
+  # moodle-mariadb-vars: &moodle-mariadb-vars
+  #   MOODLE_DATABASE_TYPE: mariadb
+  #   MOODLE_DATABASE_HOST: mariadb
+  #   MOODLE_DATABASE_PORT_NUMBER: "3306"
+  #   MOODLE_DATABASE_NAME: moodle
+  #   MOODLE_DATABASE_USER: moodle
+  #   MOODLE_DATABASE_PASSWORD: change-me-mariadb
+
+volumes:
+  pg-data:
+  moodle-data:
+  # mariadb-data:

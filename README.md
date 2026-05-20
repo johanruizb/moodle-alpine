@@ -133,6 +133,22 @@ contract (`MOODLE_*` vars, `/bitnami/moodledata`) so existing compose files and
 Helm charts keep working with a one-line change. Source code, build pipeline,
 and image registry are public and free.
 
+## Branching model
+
+- **`main`** — development branch. Push freely here; only the PR/smoke test
+  workflow runs. Images are **not** rebuilt or published.
+- **`release`** — deployment branch. Any push to `release` (typically a
+  fast-forward merge from `main`) triggers the multi-arch build and publishes
+  to `ghcr.io/johanruizb/moodle-alpine`.
+
+To cut a release:
+
+```bash
+git checkout release
+git merge --ff-only main
+git push origin release
+```
+
 ## License
 
 The Dockerfile, scripts, and CI in this repository are released under the MIT

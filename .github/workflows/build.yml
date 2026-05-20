@@ -2,7 +2,7 @@ name: Build & Publish
 
 on:
   push:
-    branches: [main]
+    branches: [release]
     tags: ['v*']
   schedule:
     - cron: '0 6 * * 1'  # Weekly Monday 06:00 UTC rebuild for security patches
