@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.7
-FROM alpine:3.21
+FROM alpine:3.22
 
 ARG MOODLE_VERSION=MOODLE_405_STABLE
 ARG S6_OVERLAY_VERSION=3.2.0.2
@@ -33,9 +33,12 @@ ENV MOODLE_VERSION=${MOODLE_VERSION} \
     MOODLE_SMTP_PASSWORD="" \
     MOODLE_SMTP_PROTOCOL=""
 
+# Runtime packages only (no curl binary in the final image).
+# `apk upgrade` ensures all transitive deps are at the latest patched version
+# even if the alpine:3.22 base hasn't been re-published yet.
 RUN set -eux; \
     apk add --no-cache \
-        bash curl ca-certificates tzdata tini \
+        bash ca-certificates tzdata tini \
         nginx \
         php83 php83-fpm php83-opcache php83-session php83-iconv \
         php83-xml php83-xmlreader php83-xmlwriter php83-dom php83-simplexml \
@@ -46,14 +49,17 @@ RUN set -eux; \
         php83-pgsql php83-pdo_pgsql \
         php83-mysqli php83-pdo_mysql \
         php83-sqlite3 php83-pdo_sqlite \
-        php83-posix php83-pcntl \
-        postgresql16-client mariadb-client; \
+        php83-posix php83-pcntl; \
+    apk upgrade --no-cache; \
     ln -sf /usr/bin/php83 /usr/bin/php; \
     ln -sf /usr/sbin/php-fpm83 /usr/sbin/php-fpm; \
     mkdir -p /var/www /run/nginx /run/php
 
-# s6-overlay v3 (multi-arch)
+# Download s6-overlay, Moodle and moosh in ONE layer, then strip build tools.
+# `--virtual .build-deps` makes curl/xz/unzip removable as a unit, so the
+# final image has no curl/xz/unzip binaries (and 0 of the curl HIGH CVEs).
 RUN set -eux; \
+    apk add --no-cache --virtual .build-deps curl xz unzip; \
     case "${TARGETARCH:-amd64}" in \
         amd64) S6_ARCH="x86_64" ;; \
         arm64) S6_ARCH="aarch64" ;; \
@@ -64,27 +70,21 @@ RUN set -eux; \
     curl -fsSL "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz" \
         | tar -C / -Jxpf -; \
     curl -fsSL "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-${S6_ARCH}.tar.xz" \
-        | tar -C / -Jxpf -
-
-# Download Moodle source
-RUN set -eux; \
+        | tar -C / -Jxpf -; \
     mkdir -p /var/www/html; \
-    curl -fsSL "https://github.com/moodle/moodle/archive/refs/heads/${MOODLE_VERSION}.tar.gz" \
-        -o /tmp/moodle.tar.gz 2>/dev/null \
-    || curl -fsSL "https://github.com/moodle/moodle/archive/${MOODLE_VERSION}.tar.gz" \
-        -o /tmp/moodle.tar.gz; \
+    ( curl -fsSL "https://github.com/moodle/moodle/archive/refs/heads/${MOODLE_VERSION}.tar.gz" -o /tmp/moodle.tar.gz \
+      || curl -fsSL "https://github.com/moodle/moodle/archive/${MOODLE_VERSION}.tar.gz" -o /tmp/moodle.tar.gz ); \
     tar -xzf /tmp/moodle.tar.gz -C /var/www/html --strip-components=1; \
     rm /tmp/moodle.tar.gz; \
     mkdir -p /bitnami/moodledata; \
-    chown -R nobody:nobody /var/www /bitnami /run/nginx /run/php
-
-# Install moosh CLI helper (optional, ~3MB)
-RUN set -eux; \
-    curl -fsSL https://moodle.org/plugins/download.php/33485/moosh_moodle45_2024061900.zip -o /tmp/moosh.zip 2>/dev/null \
-        && unzip -q /tmp/moosh.zip -d /opt/ \
-        && rm /tmp/moosh.zip \
-        && ln -sf /opt/moosh/moosh.php /usr/local/bin/moosh \
-        || echo "moosh install skipped"
+    chown -R nobody:nobody /var/www /bitnami /run/nginx /run/php; \
+    if curl -fsSL https://moodle.org/plugins/download.php/33485/moosh_moodle45_2024061900.zip -o /tmp/moosh.zip; then \
+        unzip -q /tmp/moosh.zip -d /opt/ && rm /tmp/moosh.zip && \
+        ln -sf /opt/moosh/moosh.php /usr/local/bin/moosh; \
+    else \
+        echo "moosh install skipped"; \
+    fi; \
+    apk del .build-deps
 
 COPY --chown=nobody:nobody rootfs/ /
 
