@@ -77,31 +77,31 @@ database and `/bitnami/moodledata` volume — no migration scripts needed.
 
 ## Environment variables
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `MOODLE_DATABASE_TYPE` | `mariadb` | One of `mariadb`, `mysqli`, `pgsql`, `sqlite3` |
-| `MOODLE_DATABASE_HOST` | `mariadb` | DB hostname |
-| `MOODLE_DATABASE_PORT_NUMBER` | `3306` / `5432` | DB port |
-| `MOODLE_DATABASE_NAME` | `bitnami_moodle` | DB name |
-| `MOODLE_DATABASE_USER` | `bn_moodle` | DB user |
-| `MOODLE_DATABASE_PASSWORD` | — | DB password |
-| `MOODLE_DATA_DIR` | `/bitnami/moodledata` | Moodle dataroot |
-| `MOODLE_USERNAME` | `user` | Initial admin username |
-| `MOODLE_PASSWORD` | `bitnami` | Initial admin password |
-| `MOODLE_EMAIL` | `user@example.com` | Initial admin email |
-| `MOODLE_SITE_NAME` | `New Site` | Site full/short name |
-| `MOODLE_HOST` | — | `wwwroot` host (e.g. `moodle.example.com`) |
-| `MOODLE_LANG` | `en` | Default language |
-| `MOODLE_SKIP_BOOTSTRAP` | `no` | If `yes`, skip `install_database.php` |
-| `MOODLE_INSTALL_EXTRA_ARGS` | — | Extra CLI args appended to install |
-| `MOODLE_REVERSEPROXY` | `no` | Enable `$CFG->reverseproxy` |
-| `MOODLE_SSLPROXY` | `no` | Enable `$CFG->sslproxy` |
-| `MOODLE_CRON_MINUTES` | `1` | Internal cron interval |
-| `MOODLE_SMTP_HOST` | — | SMTP relay host |
-| `MOODLE_SMTP_PORT_NUMBER` | — | SMTP port |
-| `MOODLE_SMTP_USER` | — | SMTP username |
-| `MOODLE_SMTP_PASSWORD` | — | SMTP password |
-| `MOODLE_SMTP_PROTOCOL` | — | `tls` or `ssl` |
+| Variable                      | Default               | Purpose                                        |
+| ----------------------------- | --------------------- | ---------------------------------------------- |
+| `MOODLE_DATABASE_TYPE`        | `mariadb`             | One of `mariadb`, `mysqli`, `pgsql`, `sqlite3` |
+| `MOODLE_DATABASE_HOST`        | `mariadb`             | DB hostname                                    |
+| `MOODLE_DATABASE_PORT_NUMBER` | `3306` / `5432`       | DB port                                        |
+| `MOODLE_DATABASE_NAME`        | `bitnami_moodle`      | DB name                                        |
+| `MOODLE_DATABASE_USER`        | `bn_moodle`           | DB user                                        |
+| `MOODLE_DATABASE_PASSWORD`    | —                     | DB password                                    |
+| `MOODLE_DATA_DIR`             | `/bitnami/moodledata` | Moodle dataroot                                |
+| `MOODLE_USERNAME`             | `user`                | Initial admin username                         |
+| `MOODLE_PASSWORD`             | `bitnami`             | Initial admin password                         |
+| `MOODLE_EMAIL`                | `user@example.com`    | Initial admin email                            |
+| `MOODLE_SITE_NAME`            | `New Site`            | Site full/short name                           |
+| `MOODLE_HOST`                 | —                     | `wwwroot` host (e.g. `moodle.example.com`)     |
+| `MOODLE_LANG`                 | `en`                  | Default language                               |
+| `MOODLE_SKIP_BOOTSTRAP`       | `no`                  | If `yes`, skip `install_database.php`          |
+| `MOODLE_INSTALL_EXTRA_ARGS`   | —                     | Extra CLI args appended to install             |
+| `MOODLE_REVERSEPROXY`         | `no`                  | Enable `$CFG->reverseproxy`                    |
+| `MOODLE_SSLPROXY`             | `no`                  | Enable `$CFG->sslproxy`                        |
+| `MOODLE_CRON_MINUTES`         | `1`                   | Internal cron interval                         |
+| `MOODLE_SMTP_HOST`            | —                     | SMTP relay host                                |
+| `MOODLE_SMTP_PORT_NUMBER`     | —                     | SMTP port                                      |
+| `MOODLE_SMTP_USER`            | —                     | SMTP username                                  |
+| `MOODLE_SMTP_PASSWORD`        | —                     | SMTP password                                  |
+| `MOODLE_SMTP_PROTOCOL`        | —                     | `tls` or `ssl`                                 |
 
 ## Build locally
 
@@ -120,10 +120,10 @@ docker compose -f tests/docker-compose.postgres.yml down -v
 
 ## Tag scheme
 
-| Tag | Moodle |
-|---|---|
-| `latest` | Latest stable (currently 5.0) |
-| `5`, `5.0` | Moodle 5.0 LTS |
+| Tag               | Moodle                                  |
+| ----------------- | --------------------------------------- |
+| `latest`          | Latest stable (currently 5.0)           |
+| `5`, `5.0`        | Moodle 5.0 LTS                          |
 | `lts`, `4.5`, `4` | Moodle 4.5 LTS (support until Dec 2027) |
 
 ## Why?
