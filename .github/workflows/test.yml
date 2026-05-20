@@ -1,0 +1,37 @@
+name: PR Smoke Test
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        db: [postgres, mariadb]
+        moodle_branch: [MOODLE_405_STABLE, MOODLE_500_STABLE]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (linux/amd64 only)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64
+          load: true
+          tags: moodle:test
+          build-args: |
+            MOODLE_VERSION=${{ matrix.moodle_branch }}
+
+      - name: Run smoke test against ${{ matrix.db }}
+        run: |
+          export MOODLE_IMAGE=moodle:test
+          docker compose -f tests/docker-compose.${{ matrix.db }}.yml up -d
+          bash tests/smoke.sh
+          docker compose -f tests/docker-compose.${{ matrix.db }}.yml down -v

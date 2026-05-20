@@ -1,0 +1,47 @@
+services:
+  mariadb:
+    image: mariadb:11
+    environment:
+      MARIADB_ROOT_PASSWORD: rootpass
+      MARIADB_DATABASE: bitnami_moodle
+      MARIADB_USER: bn_moodle
+      MARIADB_PASSWORD: moodlepass
+      MARIADB_CHARACTER_SET: utf8mb4
+      MARIADB_COLLATE: utf8mb4_unicode_ci
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --innodb_file_per_table=ON
+      - --skip-character-set-client-handshake
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - mariadb-data:/var/lib/mysql
+
+  moodle:
+    image: ${MOODLE_IMAGE:-moodle:test}
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    environment:
+      MOODLE_DATABASE_TYPE: mariadb
+      MOODLE_DATABASE_HOST: mariadb
+      MOODLE_DATABASE_PORT_NUMBER: "3306"
+      MOODLE_DATABASE_NAME: bitnami_moodle
+      MOODLE_DATABASE_USER: bn_moodle
+      MOODLE_DATABASE_PASSWORD: moodlepass
+      MOODLE_USERNAME: admin
+      MOODLE_PASSWORD: ChangeMe123!
+      MOODLE_EMAIL: admin@example.com
+      MOODLE_SITE_NAME: SmokeTest
+    ports:
+      - "8080:8080"
+    volumes:
+      - moodle-data:/bitnami
+
+volumes:
+  mariadb-data:
+  moodle-data:

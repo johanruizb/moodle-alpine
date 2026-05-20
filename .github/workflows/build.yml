@@ -1,0 +1,81 @@
+name: Build & Publish
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  schedule:
+    - cron: '0 6 * * 1'  # Weekly Monday 06:00 UTC rebuild for security patches
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - moodle_branch: MOODLE_405_STABLE
+            moodle_tags: "4.5,4,lts"
+          - moodle_branch: MOODLE_500_STABLE
+            moodle_tags: "5.0,5,latest"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Login to Docker Hub
+        if: ${{ secrets.DOCKERHUB_USERNAME != '' }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Compute image tags
+        id: tags
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          GHCR_IMAGE="ghcr.io/${REPO_LOWER}"
+          DH_IMAGE=""
+          if [ -n "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
+            DH_IMAGE="docker.io/${{ secrets.DOCKERHUB_USERNAME }}/moodle"
+          fi
+          TAGS=""
+          IFS=',' read -ra T <<< "${{ matrix.moodle_tags }}"
+          for tag in "${T[@]}"; do
+            TAGS="${TAGS}${GHCR_IMAGE}:${tag},"
+            if [ -n "$DH_IMAGE" ]; then
+              TAGS="${TAGS}${DH_IMAGE}:${tag},"
+            fi
+          done
+          TAGS="${TAGS%,}"
+          echo "tags=${TAGS}" >> "$GITHUB_OUTPUT"
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.tags.outputs.tags }}
+          build-args: |
+            MOODLE_VERSION=${{ matrix.moodle_branch }}
+          cache-from: type=gha,scope=${{ matrix.moodle_branch }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.moodle_branch }}
+          provenance: false

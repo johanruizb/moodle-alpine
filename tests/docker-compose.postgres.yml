@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: bitnami_moodle
+      POSTGRES_USER: bn_moodle
+      POSTGRES_PASSWORD: moodlepass
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bn_moodle -d bitnami_moodle"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+
+  moodle:
+    image: ${MOODLE_IMAGE:-moodle:test}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      MOODLE_DATABASE_TYPE: pgsql
+      MOODLE_DATABASE_HOST: postgres
+      MOODLE_DATABASE_PORT_NUMBER: "5432"
+      MOODLE_DATABASE_NAME: bitnami_moodle
+      MOODLE_DATABASE_USER: bn_moodle
+      MOODLE_DATABASE_PASSWORD: moodlepass
+      MOODLE_USERNAME: admin
+      MOODLE_PASSWORD: ChangeMe123!
+      MOODLE_EMAIL: admin@example.com
+      MOODLE_SITE_NAME: SmokeTest
+    ports:
+      - "8080:8080"
+    volumes:
+      - moodle-data:/bitnami
+
+volumes:
+  pg-data:
+  moodle-data:

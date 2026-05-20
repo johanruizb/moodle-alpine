@@ -1,0 +1,10 @@
+.git
+.github
+.gitignore
+.dockerignore
+README.md
+LICENSE
+tests/
+*.md
+**/.DS_Store
+**/Thumbs.db

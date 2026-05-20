@@ -1,0 +1,11 @@
+#!/command/with-contenv bash
+exec 2>&1
+INTERVAL_MIN="${MOODLE_CRON_MINUTES:-1}"
+INTERVAL_SEC=$(( INTERVAL_MIN * 60 ))
+cd /var/www/html || exit 1
+exec s6-setuidgid nobody bash -c '
+    while true; do
+        php admin/cli/cron.php 2>&1 || true
+        sleep '"${INTERVAL_SEC}"'
+    done
+'
