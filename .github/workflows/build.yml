@@ -83,3 +83,22 @@ jobs:
           cache-from: type=gha,scope=${{ matrix.moodle_branch }}
           cache-to: type=gha,mode=max,scope=${{ matrix.moodle_branch }}
           provenance: false
+
+  dockerhub-description:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    env:
+      HAS_DOCKERHUB: ${{ secrets.DOCKERHUB_USERNAME != '' && 'true' || 'false' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Sync README to Docker Hub
+        if: env.HAS_DOCKERHUB == 'true'
+        uses: peter-evans/dockerhub-description@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ secrets.DOCKERHUB_USERNAME }}/moodle
+          short-description: ${{ github.event.repository.description }}
+          readme-filepath: ./README.md
