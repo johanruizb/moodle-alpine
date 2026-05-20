@@ -28,7 +28,7 @@ services:
       - pg-data:/var/lib/postgresql/data
 
   moodle:
-    image: ghcr.io/<your-user>/moodle:latest
+    image: ghcr.io/johanruizb/moodle-alpine:latest
     depends_on: [postgres]
     environment:
       MOODLE_DATABASE_TYPE: pgsql
@@ -68,7 +68,7 @@ Change only the `image:` line:
 
 ```diff
 -  image: bitnami/moodle:latest
-+  image: ghcr.io/<your-user>/moodle:latest
++  image: ghcr.io/johanruizb/moodle-alpine:latest
 ```
 
 Volume paths (`/bitnami/moodledata`) and all `MOODLE_*` env vars match the
