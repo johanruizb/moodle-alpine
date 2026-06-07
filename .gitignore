@@ -5,3 +5,7 @@ Thumbs.db
 *~
 .vscode/
 .idea/
+
+# Tooling / local agent artifacts
+.serena/
+ruvector.db

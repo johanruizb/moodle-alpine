@@ -4,8 +4,21 @@ INTERVAL_MIN="${MOODLE_CRON_MINUTES:-1}"
 INTERVAL_SEC=$(( INTERVAL_MIN * 60 ))
 cd /var/www/html || exit 1
 exec s6-setuidgid nobody bash -c '
+    LOCKFILE="/tmp/moodle-cron.lock"
     while true; do
+        # Prevent overlapping runs: acquire lock, skip if previous run still active
+        if ! ( set -o noclobber; echo $$ > "$LOCKFILE" ) 2>/dev/null; then
+            # Lock held — check if the process is still alive
+            LOCK_PID=$(cat "$LOCKFILE" 2>/dev/null || echo "")
+            if [ -n "$LOCK_PID" ] && kill -0 "$LOCK_PID" 2>/dev/null; then
+                sleep 30
+                continue
+            fi
+            # Stale lock — force acquire
+            echo $$ > "$LOCKFILE" 2>/dev/null || true
+        fi
         php admin/cli/cron.php 2>&1 || true
+        rm -f "$LOCKFILE"
         sleep '"${INTERVAL_SEC}"'
     done
 '
