@@ -24,5 +24,9 @@ done
 
 echo "[smoke] FAIL: ${URL} never returned a valid Moodle login page" >&2
 echo "[smoke] Recent container logs:" >&2
-docker compose -f "$(dirname "$0")"/docker-compose.*.yml logs --tail=80 moodle >&2 || true
+# Dump logs from whichever compose file is active (glob may match several;
+# build the -f args one per file instead of letting the glob break the command).
+for cf in "$(dirname "$0")"/docker-compose.*.yml; do
+    docker compose -f "$cf" logs --tail=80 moodle >&2 2>/dev/null || true
+done
 exit 1
