@@ -4,6 +4,17 @@ FROM alpine:3.22
 ARG MOODLE_VERSION=MOODLE_405_STABLE
 ARG S6_OVERLAY_VERSION=3.2.0.2
 ARG TARGETARCH
+ARG VCS_REF=""
+ARG BUILD_DATE=""
+
+LABEL org.opencontainers.image.title="moodle-alpine" \
+      org.opencontainers.image.description="Lightweight Moodle Docker image (Alpine + Nginx + PHP-FPM + s6-overlay)" \
+      org.opencontainers.image.url="https://github.com/johanruizb/moodle-alpine" \
+      org.opencontainers.image.source="https://github.com/johanruizb/moodle-alpine" \
+      org.opencontainers.image.version="${MOODLE_VERSION}" \
+      org.opencontainers.image.revision="${VCS_REF}" \
+      org.opencontainers.image.created="${BUILD_DATE}" \
+      org.opencontainers.image.licenses="MIT"
 
 ENV MOODLE_VERSION=${MOODLE_VERSION} \
     S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
@@ -92,6 +103,11 @@ RUN set -eux; \
     chmod +x /docker-entrypoint.d/*.sh /usr/local/bin/* 2>/dev/null || true; \
     chmod +x /etc/s6-overlay/s6-rc.d/*/run 2>/dev/null || true; \
     chmod +x /etc/s6-overlay/s6-rc.d/*/up 2>/dev/null || true
+
+# start-period covers a fresh install: moodle-init (DB wait + install_database.php)
+# is a oneshot that blocks nginx/php-fpm from starting until it completes.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=300s --retries=3 \
+    CMD test -S /run/php/php-fpm.sock && pgrep nginx > /dev/null || exit 1
 
 EXPOSE 8080
 

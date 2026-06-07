@@ -28,6 +28,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Scheduled rebuilds run against the default branch (main) by default,
+          # but only `release` is meant to be published. Pin schedule builds to
+          # the release branch so the weekly security rebuild ships stable code,
+          # not in-development main.
+          ref: ${{ github.event_name == 'schedule' && 'release' || github.ref }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3

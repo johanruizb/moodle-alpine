@@ -4,7 +4,7 @@ Lightweight Moodle Docker image based on **Alpine Linux**, designed as a free,
 drop-in replacement for `bitnami/moodle` after Bitnami moved its catalog behind
 a paid subscription.
 
-- **Base:** `alpine:3.21` + PHP 8.3 + Nginx 1.26 + PHP-FPM (ondemand)
+- **Base:** `alpine:3.22` + PHP 8.3 + Nginx + PHP-FPM (ondemand)
 - **Process supervisor:** `s6-overlay` v3
 - **Image size:** ~250 MB compressed (Moodle source itself is ~400 MB extracted)
 - **Architectures:** `linux/amd64`, `linux/arm64`

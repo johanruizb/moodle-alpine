@@ -21,6 +21,11 @@ services:
       test: ["CMD-SHELL", "pg_isready -U moodle -d moodle"]
       interval: 10s
       retries: 10
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   moodle:
     image: ghcr.io/johanruizb/moodle-alpine:latest   # or :5.0, :4.5, :lts
@@ -61,6 +66,23 @@ services:
       - "8080:8080"
     volumes:
       - moodle-data:/bitnami
+    # Healthcheck is inherited from the image (Dockerfile HEALTHCHECK:
+    # php-fpm socket + nginx, start-period 300s for fresh installs).
+    # Do not override here with admin/cli/heartbeat.php — that script does
+    # not exist in Moodle core and would keep the container permanently
+    # unhealthy.
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "1.0"
+        reservations:
+          memory: 256M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   # ---------- MariaDB alternative ----------
   # Uncomment the two blocks below and remove the postgres ones above
@@ -79,6 +101,11 @@ services:
   #     - --collation-server=utf8mb4_unicode_ci
   #   volumes:
   #     - mariadb-data:/var/lib/mysql
+  #   logging:
+  #     driver: json-file
+  #     options:
+  #       max-size: "10m"
+  #       max-file: "3"
   #
   # moodle-mariadb-vars: &moodle-mariadb-vars
   #   MOODLE_DATABASE_TYPE: mariadb
