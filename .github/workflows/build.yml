@@ -64,7 +64,7 @@ jobs:
           GHCR_IMAGE="ghcr.io/${REPO_LOWER}"
           DH_IMAGE=""
           if [ -n "${DOCKERHUB_USERNAME}" ]; then
-            DH_IMAGE="docker.io/${DOCKERHUB_USERNAME}/moodle"
+            DH_IMAGE="docker.io/${DOCKERHUB_USERNAME}/moodle-alpine"
           fi
           TAGS=""
           IFS=',' read -ra T <<< "${{ matrix.moodle_tags }}"
@@ -105,6 +105,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: ${{ secrets.DOCKERHUB_USERNAME }}/moodle
+          repository: ${{ secrets.DOCKERHUB_USERNAME }}/moodle-alpine
           short-description: ${{ github.event.repository.description }}
           readme-filepath: ./README.md

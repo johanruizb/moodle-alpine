@@ -1,8 +1,12 @@
 # moodle-alpine
 
-Lightweight Moodle Docker image based on **Alpine Linux**, designed as a free,
-drop-in replacement for `bitnami/moodle` after Bitnami moved its catalog behind
-a paid subscription.
+Lightweight Docker image for Moodle™ LMS based on **Alpine Linux**, designed as
+a free, drop-in replacement for `bitnami/moodle` after Bitnami moved its catalog
+behind a paid subscription.
+
+> **Disclaimer:** Moodle™ is a registered trademark of Moodle Pty Ltd.
+> This project is **not** affiliated with, endorsed by, or sponsored by Moodle HQ.
+> This is an independent, community-maintained Docker image.
 
 - **Base:** `alpine:3.22` + PHP 8.3 + Nginx + PHP-FPM (ondemand)
 - **Process supervisor:** `s6-overlay` v3
@@ -18,37 +22,37 @@ a paid subscription.
 
 ```yaml
 services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: bitnami_moodle
-      POSTGRES_USER: bn_moodle
-      POSTGRES_PASSWORD: moodlepass
-    volumes:
-      - pg-data:/var/lib/postgresql/data
+    postgres:
+        image: postgres:16-alpine
+        environment:
+            POSTGRES_DB: bitnami_moodle
+            POSTGRES_USER: bn_moodle
+            POSTGRES_PASSWORD: moodlepass
+        volumes:
+            - pg-data:/var/lib/postgresql/data
 
-  moodle:
-    image: ghcr.io/johanruizb/moodle-alpine:latest
-    depends_on: [postgres]
-    environment:
-      MOODLE_DATABASE_TYPE: pgsql
-      MOODLE_DATABASE_HOST: postgres
-      MOODLE_DATABASE_NAME: bitnami_moodle
-      MOODLE_DATABASE_USER: bn_moodle
-      MOODLE_DATABASE_PASSWORD: moodlepass
-      MOODLE_USERNAME: admin
-      MOODLE_PASSWORD: ChangeMe123!
-      MOODLE_EMAIL: admin@example.com
-      MOODLE_SITE_NAME: My Moodle
-      MOODLE_HOST: moodle.example.com
-    ports:
-      - "8080:8080"
-    volumes:
-      - moodle-data:/bitnami
+    moodle:
+        image: ghcr.io/johanruizb/moodle-alpine:latest
+        depends_on: [postgres]
+        environment:
+            MOODLE_DATABASE_TYPE: pgsql
+            MOODLE_DATABASE_HOST: postgres
+            MOODLE_DATABASE_NAME: bitnami_moodle
+            MOODLE_DATABASE_USER: bn_moodle
+            MOODLE_DATABASE_PASSWORD: moodlepass
+            MOODLE_USERNAME: admin
+            MOODLE_PASSWORD: ChangeMe123!
+            MOODLE_EMAIL: admin@example.com
+            MOODLE_SITE_NAME: My Moodle
+            MOODLE_HOST: moodle.example.com
+        ports:
+            - "8080:8080"
+        volumes:
+            - moodle-data:/bitnami
 
 volumes:
-  pg-data:
-  moodle-data:
+    pg-data:
+    moodle-data:
 ```
 
 ### MariaDB
@@ -56,10 +60,10 @@ volumes:
 Same as above with:
 
 ```yaml
-    environment:
-      MOODLE_DATABASE_TYPE: mariadb
-      MOODLE_DATABASE_HOST: mariadb
-      MOODLE_DATABASE_PORT_NUMBER: "3306"
+environment:
+    MOODLE_DATABASE_TYPE: mariadb
+    MOODLE_DATABASE_HOST: mariadb
+    MOODLE_DATABASE_PORT_NUMBER: "3306"
 ```
 
 ## Migrating from `bitnami/moodle`
@@ -153,3 +157,18 @@ git push origin release
 
 The Dockerfile, scripts, and CI in this repository are released under the MIT
 License. Moodle itself is GPL v3 — see `https://github.com/moodle/moodle`.
+
+## Trademarks & disclaimer
+
+This is an **unofficial** project. It is not affiliated with, endorsed by, or
+sponsored by any of the trademark holders mentioned below.
+
+- **Moodle™** is a registered trademark of Moodle Pty Ltd. This project is not
+  affiliated with or endorsed by Moodle HQ.
+- **Bitnami** is a trademark of Broadcom Inc. (VMware). This project is not
+  affiliated with, endorsed by, or sponsored by Bitnami, VMware, or Broadcom.
+  It is provided only as a community drop-in alternative.
+- All other product names, logos, and brands referenced here (Alpine Linux,
+  PHP, Nginx, PostgreSQL, MariaDB, MySQL, and others) are property of their
+  respective owners. Use of these names does not imply any affiliation or
+  endorsement.
